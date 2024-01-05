@@ -68,11 +68,34 @@ module.exports = {
         await thought.remove();
       }
 
-      const deleteUser = await User.delete(dbUserData);
+      const deleteUser = await User.remove(dbUserData);
 
       res.json({ message: "User Deleted" });
     } catch (err) {
       res.status(500).json(err);
+    }
+  },
+  async addFriend(req, res) {
+    try {
+      const dbFriendData = User.findOne({ _id: req.params.friendId });
+      if (!dbFriendData) {
+        res.status(404).json({ message: "No user with that friend ID" });
+        return;
+      }
+
+      const dbUserData = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        {
+          $push: { friends: dbFriendData._id },
+        },
+        {
+          new: true,
+        }
+      );
+
+      res.json(dbUserData);
+    } catch (err) {
+      res.json(500).json(err);
     }
   },
 };
