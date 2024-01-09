@@ -36,7 +36,7 @@ module.exports = {
   async updateUser(req, res) {
     try {
       const dbUserData = await User.findOneAndUpdate(
-        req.params.userId,
+        { _id: req.params.userId },
         req.body,
         {
           new: true,
@@ -62,22 +62,25 @@ module.exports = {
       }
 
       const thoughts = await Thought.find({
-        username: dbUserData.username,
+        username: req.params.userId,
       });
-      for (const thought of thoughts) {
-        await thought.remove();
+      if (thoughts.length > 0) {
+        for (const thought of thoughts) {
+          await thought.remove();
+        }
       }
 
-      const deleteUser = await User.remove(dbUserData);
+      await User.deleteOne({ _id: req.params.userId });
 
       res.json({ message: "User Deleted" });
     } catch (err) {
+      console.log(err);
       res.status(500).json(err);
     }
   },
   async addFriend(req, res) {
     try {
-      const dbFriendData = User.findOne({ _id: req.params.friendId });
+      const dbFriendData = await User.findOne({ _id: req.params.friendId });
       if (!dbFriendData) {
         res.status(404).json({ message: "No user with that friend ID" });
         return;
@@ -87,6 +90,29 @@ module.exports = {
         { _id: req.params.userId },
         {
           $push: { friends: dbFriendData._id },
+        },
+        {
+          new: true,
+        }
+      );
+
+      res.json(dbUserData);
+    } catch (err) {
+      res.json(500).json(err);
+    }
+  },
+  async deleteFriend(req, res) {
+    try {
+      const dbFriendData = await User.findOne({ _id: req.params.friendId });
+      if (!dbFriendData) {
+        res.status(404).json({ message: "No user with that friend ID" });
+        return;
+      }
+
+      const dbUserData = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        {
+          $pull: { friends: dbFriendData._id },
         },
         {
           new: true,

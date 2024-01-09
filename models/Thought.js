@@ -1,9 +1,10 @@
-const { Schema, model } = require("mongoose");
+const { Schema, model, Types } = require("mongoose");
+const Mongoose = require("mongoose");
 
 const reactionSchema = new Schema({
   reactionId: {
     type: Types.ObjectId,
-    default: Types.ObjectId,
+    default: new Mongoose.Types.ObjectId(),
   },
   reactionBody: {
     type: String,
@@ -11,8 +12,9 @@ const reactionSchema = new Schema({
     match: /^.{1,280}$/,
   },
   username: {
-    type: Schema.Types.ObjectId,
-    ref: "user",
+    type: String,
+    required: true,
+    match: /^.{1,280}$/,
   },
   createdAt: {
     type: Date,
